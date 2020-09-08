@@ -7,7 +7,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 test_train_split = 0.2
-np.random.seed(1000)
+np.random.seed(100)
 
 
 # dataset from image folders
@@ -45,37 +45,55 @@ class CNN(nn.Module):
         x = F.relu(self.pool(self.conv3(x)))
         x = x.view(-1, 162)
         x = F.relu(self.fc1(x))       
-        x = F.softmax(self.fc2(x))
 
         return x
 
 
 model = CNN()
+# model.load_state_dict(torch.load('./model.pth'))
 opt = optim.SGD(model.parameters(), lr = 0.01)
 lossfn = nn.CrossEntropyLoss()
 record_at = 10
 
-def train(epochs):
+epochs = 128
+def train(epoch):
+    model.train()
+    for batch_idx, (data, labels) in enumerate(train_loader):
+        out = model(data)
+        opt.zero_grad()
+        loss = lossfn(out, labels)
+        loss.backward()
+        opt.step()
 
-    for i in range(epochs):
+        print('Epochs {}/{}   Iteration: {}/{}   Training Loss: {}'.format(epoch, epochs, batch_idx, \
+            int(len(train_set)/train_batch_size), loss.item()))
 
-        for batch_idx, (data, labels) in enumerate(train_loader):
-            out = model(data)
-            opt.zero_grad()
-            loss = lossfn(out, labels)
-            loss.backward()
-            opt.step()
+        if batch_idx%record_at==0:
+            torch.save(model.state_dict(), './model.pth')
+            torch.save(opt.state_dict(), './optimizer.pth')
 
-            print('Epochs {}/{}   Iteration: {}/{}   Training Loss: {}'.format(i, epochs, batch_idx, \
-                int(len(train_set)/train_batch_size), loss.item()))
+def test():
+    model.eval()
+    loss = 0 
+    correct = 0
+    print("=========== testing ============")
+    for _, (data, label) in enumerate(test_loader):
+        out = model(data)
+        loss += F.cross_entropy(out, label)
+        _, output = torch.max(out, 1)
+        print(output)
+        correct += (output == label).float().sum()
 
-            if batch_idx%record_at==0:
-                torch.save(model.state_dict(), './model.pth')
-                torch.save(opt.state_dict(), './optimizer.pth')
+    avg_loss = loss/len(test_set)
+    print("Avg. test loss: {}   Accuracy: {}/{}  ({}%)".format(avg_loss, correct, len(test_set), 100*correct/len(test_set)))
+    
+
 
 
 if __name__ == '__main__':
-    train(128)
+    for epoch in range(epochs):
+        train(epoch)
+        test()
 
 
 
