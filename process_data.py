@@ -4,11 +4,10 @@ import matplotlib.pyplot as plt
 import os
 
 
-for a in range(5, 51, 5):
+for b in range(1, 8):
     d=1
-    os.makedirs("./dl-microstructures/phase_wise_data/Phase_%d"%a, mode=0o777)
-
-    for b in range(1, 8):
+    os.makedirs("./dl-microstructures/class_wise_data/Class_%d"%b, mode=0o777)
+    for a in range(5, 51, 5):
         for c in range(1, 51):
             f = open("./dl-microstructures/data/Phase_%d/Class_%d/%d.txt"%(a, b, c), "r")
             im = np.empty(shape=(256,256), dtype=np.uint8)
@@ -18,5 +17,5 @@ for a in range(5, 51, 5):
             
             
             img = Image.fromarray(im, 'L')
-            img.save("./dl-microstructures/phase_wise_data/Phase_%d/%d.png"%(a, d))
+            img.save("./dl-microstructures/class_wise_data/Class_%d/%d.png"%(b, d))
             d+=1
