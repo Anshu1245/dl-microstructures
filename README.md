@@ -1,2 +1,2 @@
 # dl-microstructures
-deep learning for quantitative metallography
+Deep Learning for Quantitative Metallography
